@@ -1,6 +1,6 @@
 import nc from 'next-connect';
 import type { ExtendedRequest, ExtendedResponse } from '../../../../interfaces';
-import { posts } from '../../../../data/posts';
+import prisma from '../../../../lib/prisma';
 
 const handler = nc<ExtendedRequest, ExtendedResponse>({
 	attachParams: true,
@@ -12,13 +12,13 @@ const handler = nc<ExtendedRequest, ExtendedResponse>({
 		res.status(404).end('Page is not found');
 	},
 })
-	.get((_req, res) => {
+	.get(async (_req, res) => {
+		const posts = await prisma.post.findMany();
 		return res.json({ datas: posts });
 	})
-	.post((req, res) => {
-		let lastId: number = posts[posts.length - 1].id;
-		posts.push({ id: ++lastId, ...req.body });
-		return res.status(201).json({ messsage: 'Post created !', status: 200 });
+	.post(async (req, res) => {
+		const newPost = await prisma.post.create({ data: { ...req.body } });
+		return res.status(201).json({ messsage: 'Post created !', status: 200, data: newPost });
 	});
 
 export default handler;

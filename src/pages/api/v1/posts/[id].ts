@@ -1,6 +1,6 @@
 import nc from 'next-connect';
-import { posts } from '../../../../data/posts';
 import type { ExtendedRequest, ExtendedResponse } from '../../../../interfaces';
+import prisma from '../../../../lib/prisma';
 
 const handler = nc<ExtendedRequest, ExtendedResponse>({
 	attachParams: true,
@@ -12,30 +12,25 @@ const handler = nc<ExtendedRequest, ExtendedResponse>({
 		res.status(404).end('Page is not found');
 	},
 })
-	.get('/api/v1/posts/:id', (req, res) => {
-		const post = posts.find((post) => post.id === +req.params.id);
+	.get('/api/v1/posts/:id', async (req, res) => {
+		const post = await prisma.post.findUnique({ where: { id: req.params.id } });
+
 		if (!post) {
 			return res.status(404).json({ message: 'Blog post not found', status: 404 });
 		}
-		return res.json({ data: post });
+
+		return res.status(200).json({ data: post });
 	})
-	.put('/api/v1/posts/:id', (req, res) => {
-		const postIndex = posts.findIndex((post) => post.id === +req.params.id);
-		if (postIndex === -1) {
+	.put('/api/v1/posts/:id', async (req, res) => {
+		const updatedPost = await prisma.post.update({ where: { id: req.params.id }, data: { ...req.body } });
+		if (!updatedPost) {
 			return res.status(404).json({ message: 'Blog post not found', status: 404 });
 		}
-		const postToUpdate = posts[postIndex];
 
-		posts[postIndex] = { ...postToUpdate, ...req.body };
-
-		return res.status(204).end();
+		return res.status(200).json({ data: updatedPost });
 	})
-	.delete('/api/v1/posts/:id', (req, res) => {
-		const postIndex = posts.findIndex((post) => post.id === +req.params.id);
-		if (postIndex === -1) {
-			return res.status(404).json({ message: 'Blog post not found', status: 404 });
-		}
-		posts.splice(postIndex, 1);
+	.delete('/api/v1/posts/:id', async (req, res) => {
+		await prisma.post.delete({ where: { id: req.params.id } });
 
 		return res.status(204).end();
 	});
