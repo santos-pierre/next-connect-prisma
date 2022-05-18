@@ -24,4 +24,4 @@ pnpx dev
 
 ## Insomnia
 
-You can find an [insomnia JSON](insomnia_next_connect_collection.json) in the insomnia folder containing all the collections for this project.
+You can find an [insomnia JSON](insomnia/insomnia_next_connect_collection.json) in the insomnia folder containing all the collections for this project.
